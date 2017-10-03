@@ -1,0 +1,171 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "clean",
+	"patterns": [
+		{"include": "#everything"}
+	],
+	"repository": {
+		"everything":{"patterns": [
+			{"include": "#cleanComment"},	
+			
+			{"include": "#cleanRecordDef"},	
+	
+			{"include": "#cleanConditional"},
+			{"include": "#cleanStatement"},
+			{"include": "#cleanClass"},
+			{"include": "#cleanGeneric"},
+			
+			{"include": "#cleanModule"},
+			{"include": "#cleanChar"},
+			{"include": "#cleanInteger"},
+			{"include": "#cleanReal"},
+			{"include": "#cleanBool"},
+			{"include": "#cleanFunction"},
+			{"include": "#cleanOperator"},
+			{"include": "#cleanInfix"},		
+			{"include": "#cleanLambda"},		
+			{"include": "#cleanTypeDef"},		
+	
+			{"include": "#cleanString"}
+		]},
+		"cleanModule": {"patterns": [
+			{
+				"begin": "^\\s*((implementation|definition|system)\\s+)?module\\s+",
+				"beginCaptures": {"0": {"name": "keyword.control.clean"}},
+				"end": "\n",
+				"patterns": [
+					{
+						"name": "entity.name.namespace.clean",
+						"match": ".*"
+					}
+				]
+			}
+		]},
+		"cleanComment": {"patterns": [
+			{
+				"name": "comment.block.clean",
+				"begin": "/\\*",
+				"end": "\\*/",
+				"patterns": [{"include": "#cleanComment"}]			
+			},{
+				"name": "comment.line.double-dash.clean",
+				"match": "//.*$"
+			}
+		]},
+		"cleanString": {"patterns": [{
+			"name": "string.quoted.double.clean",
+			"begin": "\"",
+			"beginCaptures": {"0": {"name": "punctuation.definition.string.begin.clean"}},
+			"end": "(\")|((?:[^\\\\\\n])$)",
+			"endCaptures": {
+				"1": {"name": "punctuation.definition.string.end.clean"},
+				"2": {"name": "invalid.illegal.newline.clean"}
+			},
+			"patterns": [{"include": "#cleanSpecialChar"}]
+		}]},
+		"cleanInteger": {"patterns": [{
+			"name": "constant.numeric.clean",
+			"match": "[+-~]?(\\d+|0[0-7]+|0x[0-9A-Fa-f]+)"
+		}]},
+		"cleanReal": {"patterns": [{
+			"name": "constant.numeric.clean",
+			"match": "[+-~]?\\d+\\.\\d+(E[+-~]?\\d+)?"
+		}]},
+		"cleanChar": {"patterns": [{
+			"name": "string.quoted.simple.clean",
+			"match": "'(\\\\([0-9]+|o[0-7]+|x[0-9a-fA-F]+|[\"\\'&abfnrtv])|.)'"
+		}]},
+		"cleanBool": {"patterns": [{
+			"name": "constant.language.clean",
+			"match": "(True|False)"
+		}]},
+		"cleanRecordDef": {"patterns": [{
+			"begin": "({)",
+			"beginCaptures": {"0": {"name": "keyword.record.clean"}},
+			"endCaptures": {"0": {"name": "keyword.record.clean"}},
+			"end": "(})",
+			"patterns": [{
+				"match": "\\s*([a-zA-Z0-9_`]*)\\s*(::)",
+				"captures": {
+					"1": {"name": "entity.name.class.field.clean"},
+					"2": {"name": "keyword.record.clean"}
+				}
+			},{
+				"match": "\\s*([a-zA-Z0-9_`]*)\\s*=",
+				"captures": {
+					"1": {"name": "entity.name.class.field.clean"},
+					"2": {"name": "keyword.record.clean"}
+				},
+				"include": "#everything"
+			}]			
+		}]},
+		"cleanCharList": {"patterns": [{
+			"name": "string.quoted.simple.clean",
+			"begin": "'",
+			"beginCaptures": {"0": {"name": "punctuation.definition.string.begin.clean"}},
+			"end": "(')|((?:[^\\\\\\n])$)",
+			"endCaptures": {
+				"1": {"name": "punctuation.definition.string.end.clean"},
+				"2": {"name": "invalid.illegal.newline.clean"}
+			},
+			"patterns": [{"include": "#cleanSpecialChar"}]
+		}]},
+		"cleanSpecialChar": {"patterns": [{
+			"name": "keyword.control.clean",
+			"match": "\\\\([0-9]+|o[0-7]+|x[0-9a-fA-F]+|[\"\\'&abfnrtv])"
+		}]},
+		"cleanOperator": {"patterns": [{
+			"name": "keyword.operator.clean",
+			"match": "[-~@#$%^?!+*<>\/|&=:.]+"
+		}]},
+		"cleanTypeDef": {"patterns": [{
+			"name": "keyword.operator.clean",
+			"match": "^\\s*::\\s*\\u\\w*`?`"
+		}]},
+		"cleanLambda": {"patterns": [{
+			"match": "(\\\\)\\s*(([a-zA-Z_]\\w*`?\\s*)+)(\\.|-\\>|=)",
+			"captures": {
+				"1": {"name": "storage.type.function.lambda.clean"},		
+				"2": {"name": "variable.parameter.clean"},
+				"4": {"name": "storage.type.function.lambda.define.clean"},
+				"5": {"name": "storage.type.function.lambda.define.clean"}
+			}
+		}]},
+		"cleanImport": {"patterns": [{
+			"name": "keyword.control.clean",
+			"match": "\\b(from|import|as|qualified)\\b"
+		}]},
+		"cleanFunction": {"patterns": [{
+			"name": "invalid.illegal",
+			"match": "^\\s*(\\((\\w*`?|[-~@#$%^?!+*<>\\/|&=:.]+)\\)|[\\w`]*)(\\s+(infix[lr]?)\\s+(\\d))?\\s*(::)\\s*",
+			"captures": {
+				"1": {"name": "entity.name.function.clean"},
+				"2": {"name": "entity.name.function.clean"},
+				"4": {"name": "keyword.infix.clean"},
+				"5": {"name": "constant.numeric.integer.clean"},
+				"6": {"name": "keyword.defineType.clean"}
+			}
+		}]},
+		"cleanConditional": {"patterns": [{
+			"name": "keyword.control.clean",
+			"match": "\\b(if|otherwise)\\b"
+		}]},
+		"cleanStatement": {"patterns": [{
+			"name": "keyword.operator.clean",
+			"match": "\\b(let!|let|in|with|where|case|of|dynamic)\\b"
+		}]},
+		"cleanClass": {"patterns": [{
+			"name": "meta.class.clean",
+			"match": "\\b(class|instance|special)\\b"
+		}]},
+		"cleanGeneric": {"patterns": [{
+			"name": "keyword.other.clean",
+			"match": "\\b(generic|derive)\\b"
+		}]},
+		"cleanInfix": {"patterns": [{
+			"name": "keyword.other.clean",
+			"match": "\\b(infixl|infixr|infix)\\b"
+		}]}
+	},
+	"scopeName": "source.clean"
+}

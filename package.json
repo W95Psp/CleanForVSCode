@@ -1,0 +1,65 @@
+{
+  "name": "cleanlang",
+  "displayName": "CleanLang",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "l",
+  "engines": {
+    "vscode": "^1.16.0"
+  },
+  "categories": [
+    "Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:clean"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.sayHello",
+        "title": "Hello World"
+      }
+    ],
+    "languages": [
+      {
+        "id": "clean",
+        "aliases": [
+          "Clean",
+          "clean"
+        ],
+        "extensions": [
+          "icl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "clean",
+        "scopeName": "source.clean",
+        "path": "./syntaxes/clean.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.5.2",
+    "vscode": "^1.1.5",
+    "mocha": "^3.5.0",
+    "@types/node": "^7.0.43",
+    "@types/mocha": "^2.2.42"
+  },
+  "dependencies": {
+    "@types/request-promise-native": "^1.0.7",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
+    "typescript-memoize": "^1.0.0-alpha.3"
+  }
+}

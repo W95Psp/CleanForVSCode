@@ -1,0 +1,17 @@
+// A launch configuration that launches the extension inside a new window
+{
+    "version": "0.1.0",
+    "configurations": [
+        {
+            "name": "Launch Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": ["--extensionDevelopmentPath=C:\\Users\\wpsp\\Desktop\\cleanExt\\cleanlang\\" ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outFiles": [ "${workspaceRoot}/out/src/**/*.js" ],
+            "preLaunchTask": "npmwatch"
+        }
+    ]
+}
