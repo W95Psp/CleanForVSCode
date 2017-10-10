@@ -3,12 +3,14 @@
 // Import the module and reference it with the alias vscode in your code below
 import {
     TextDocument, Position, CancellationToken, ExtensionContext,CompletionItemProvider,CompletionItem,Hover,Range,
-    languages,window,commands, MarkdownString, DiagnosticCollection, Diagnostic, DiagnosticSeverity
+    languages,window,commands, MarkdownString, DiagnosticCollection, Diagnostic, DiagnosticSeverity,
+    ShellExecution, Uri
 } from 'vscode';
 import {normalize, format, parse} from 'path'; 
 import { askCloogle, askCloogleExact, getInterestingStringFrom } from './cloogle';
-import { Let, Tuple } from './tools';
-import { cpm } from './cpm';
+import { Let, Tuple, MakeList } from './tools';
+import { cpm, getProjectPath } from './cpm';
+import { spawn } from 'child_process';
 
 
 class hey implements CompletionItemProvider {
@@ -54,47 +56,95 @@ export function activate(context: ExtensionContext) {
         }
     });
 
-    let regexpParseErrors = /^\s*(Type error|Error|Overloading .rror|Uniqueness .rror|Parse .rror) \[\w+.\w+,(\d+)(?:;(\d+))?(?:,([^,]*))?]: (.*)((\n\s.*)*)/;
+    let regexpParseErrors = /^\s*(Warning|Type error|Error|Overloading .rror|Uniqueness .rror|Parse .rror) \[([\w\.]+),(\d+)(?:;(\d+))?(?:,([^,]*))?]:(.*)((\n\s.*)*)/mg;
 
     let newDiagnosticCollection = () => languages.createDiagnosticCollection('clean');
     let diagnostics = newDiagnosticCollection();
     
     languages.registerCompletionItemProvider('clean', new hey(), 'h');
     
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = commands.registerCommand('extension.sayHello', async () => {
+    let lastOut;
+    let cpmMake = async () => {
         let editor = window.activeTextEditor;
         
-        let path = parse(window.activeTextEditor.document.fileName).dir;
+        let path = getProjectPath(parse(window.activeTextEditor.document.fileName).dir);
+        if(path instanceof Error){
+            window.showErrorMessage('Could not detect any *.prj file in any parent directories');
+            return false;
+        }
 
+        diagnostics.clear();
+
+        lastOut && lastOut.dispose();
         process.chdir(path);
-        let cpmResult = await cpm('essai');
-        if(cpmResult instanceof Error)
-            return window.showErrorMessage(cpmResult.message);
-
-        let outs = cpmResult.split(/\n(?=[^\s])/).filter(o => o);
-        let types = outs.map(m => m.match(/^(\w*`?|[-~@#$%^?!+*<>\/|&=:.]+)\s*::\s*(.*)[\s\n]*$/)).filter(o => o);
-        types.forEach(([,n,t]) => computedTypes[n] = t);
-
-        let errors = outs.map(m => m.match(regexpParseErrors))
-                .filter(o => o)
-                .map(([,errorName,l,c,oth,msg,more,]) => Tuple(errorName,l,c,oth,msg,more.split('\n').map(o => o.trim())));
+        let out = window.createOutputChannel("CPM");
+        lastOut = out;
+        out.show();  
+        let cpmResult = await cpm('essai', l => out.appendLine(l));
         
-        diagnostics.set(editor.document.uri, errors.map(([n,l,c,,msg,more]) => (
-            new Diagnostic(
+        if(cpmResult instanceof Error){
+            window.showErrorMessage(cpmResult.message);
+            return false;
+        }
+        // let outs = cpmResult.split(/\n(?=[^\s])/).filter(o => o);
+        
+        // let outs = cpmResult.match(new RegExp(regexpParseErrors.toString(), 'mg')) || [];
+        // let types = outs.map(m => m.match(/^(\w*`?|[-~@#$%^?!+*<>\/|&=:.]+)\s*::\s*(.*)[\s\n]*$/)).filter(o => o);
+        // types.forEach(([,n,t]) => computedTypes[n] = t);
+        
+
+        let errors = MakeList(() => Let(regexpParseErrors.exec(<string>cpmResult), value => ({ value, done: !value })))
+                .filter(o => o)
+                .map(([,errorName,fName,l,c,oth,msg,more,]) => Tuple(errorName,fName,l,c,oth,msg,(more||'').split('\n').map(o => o.trim())));
+        
+        
+        let derrors = errors.map(([n,fName,l,c,,msg,more]) => Tuple(
+            Uri.file(path+'/'+fName.replace(/\.(?=.{4})/g, '/')),
+            [new Diagnostic(
                 c!==undefined && (+c).toString() === c.toString() ?
                     new Range(new Position(+l, +c), new Position(+l, +c + 1))
                         :
                     new Range(new Position(+l-1, 0), new Position(+l, 0)),
-                n+': '+msg+'\n'+more.join('\n')
-                , DiagnosticSeverity.Error
-            )
-        )))
+                n+': '+msg+'\n'+(more||[]).join('\n')
+                , n=='Warning' ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error
+            )]
+        ));
+        diagnostics.set(derrors);
+
+        let executable = (cpmResult.match(/^Linking '(.*?)'$/m) || [])[1] || '';
+
+        return {executable, out};
+    };  
+    let disposableCpmMake       = commands.registerCommand('extension.cpmMake', cpmMake);
+    let disposableCpmMakeExec   = commands.registerCommand('extension.cpmMakeExec', async () => {
+        let result = await cpmMake();
+
+        if(result === false)
+            return;
+        
+        // let s = new ShellExecution('bash.exe -c "'+result.executable+'"');
+        // window.createTerminal('HEY', 'bash.exe');
+        let out = result.out || window.createOutputChannel("Clean program");
+
+        out.appendLine("Execute program "+result.executable+"...");
+        out.show();
+        let p = spawn('bash.exe', ['-c', './'+result.executable]);
+        let left = '';
+        p.stdout.on("data", (chunk) => {
+            let s = chunk.toString();
+            let i = s.lastIndexOf('\n');
+            if(i > -1){
+                out.appendLine(left + s.substr(0, i))
+                left = s.substr(i + 1);
+            }else
+                left += s;
+        });
+        p.stdout.on("error", (err) => out.appendLine('ERROR: '+err.toString()));
+        p.stdout.on("close", () => [left, ' ', 'Program done'].map(x => x && out.appendLine(x)))
     });
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(disposableCpmMake);
+    context.subscriptions.push(disposableCpmMakeExec);
 }
 
 // this method is called when your extension is deactivated

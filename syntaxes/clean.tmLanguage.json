@@ -11,9 +11,10 @@
 			{"include": "#cleanRecordDef"},	
 	
 			{"include": "#cleanConditional"},
-			{"include": "#cleanStatement"},
 			{"include": "#cleanClass"},
 			{"include": "#cleanGeneric"},
+			{"include": "#cleanImport"},
+			{"include": "#cleanStatement"},
 			
 			{"include": "#cleanModule"},
 			{"include": "#cleanChar"},
@@ -25,8 +26,9 @@
 			{"include": "#cleanInfix"},		
 			{"include": "#cleanLambda"},		
 			{"include": "#cleanTypeDef"},		
-	
-			{"include": "#cleanString"}
+			
+			{"include": "#cleanString"},
+			{"include": "#cleanCharList"}	
 		]},
 		"cleanModule": {"patterns": [
 			{
@@ -151,7 +153,7 @@
 			"match": "\\b(if|otherwise)\\b"
 		}]},
 		"cleanStatement": {"patterns": [{
-			"name": "keyword.operator.clean",
+			"name": "keyword.control.clean",
 			"match": "\\b(let!|let|in|with|where|case|of|dynamic)\\b"
 		}]},
 		"cleanClass": {"patterns": [{

@@ -1,5 +1,9 @@
 // Bind a value to a variable name
-export let Let = <T,K>(v: T, exp: (_:T)=>K) => exp(v);
+export function Let<T,K>(v: T, exp: (_:T)=>K);
+export function Let<T,K,L>(v: T, exp: (_:T)=>K, exp2: (t:T,k:K)=>L);
+export function Let<T,K,L>(v: T, exp: (_:T)=>K, exp2?: (t:T,k:K)=>L){
+	return exp2 ? exp2(v, exp(v)) : exp(v);
+}
 
 // Checks if a class is inherited from another one
 export let isChildOf = <T extends Function>(A: any, parent: T) : A is T => Let(Object.getPrototypeOf(A), s => !!A.name && (parent==s || isChildOf(s, parent)));
@@ -34,6 +38,9 @@ declare global {
 		filterUndef<T>(this: (T|undefined)[]) : T[];
 
 		without(this: T[], value: T): T[];
+	}
+	interface String {
+		cutInHalf(this: string, i: number, actionOnLeft?: (left: string) => any, actionOnRight?: (right: string) => any): [string, string];
 	}
 	interface Math {
 		randInt(max: number): number;
@@ -88,6 +95,12 @@ declare global {
 
 // let concatFunctionsArguments = <>
 
+String.prototype.cutInHalf = function(this: string, i: number, actionOnLeft?: (left: string) => any, actionOnRight?: (right: string) => any): [string, string]{
+	let [l,r] = [this.substr(0, i), this.substr(i+1)];
+	actionOnLeft && actionOnLeft(l);
+	actionOnRight && actionOnRight(r);
+	return [l, r];
+}
 
 Function.prototype._bind = function(this: Function, _this: any, ...a: any[]){ return (...b: any[]) => this.call(_this, ...a.slice(0, -1), ...b) };
 
@@ -145,16 +158,22 @@ process.on('unhandledRejection', (reason) => {
     console.log(reason);
 });
 
+let arrayTrimRight = (t: any[]) => {
+	let dec = 0, i = t.length;
+	while(t[i--] === undefined);
+	return t.slice(0, i + 1);
+};
 
 // Tuples typings
-export function Tuple<A>		    (a: A) 								: [A]		 ;
-export function Tuple<A,B>		    (a: A, b: B) 						: [A,B]		 ;
-export function Tuple<A,B,C>	    (a: A, b: B, c: C)					: [A,B,C]	 ;
-export function Tuple<A,B,C,D>	    (a: A, b: B, c: C, d: D)			: [A,B,C,D]	 ;
-export function Tuple<A,B,C,D,E>    (a: A, b: B, c: C, d: D, e: E)		: [A,B,C,D,E];
-export function Tuple<A,B,C,D,E,F>  (a: A, b: B, c: C, d: D, e: E, f: F): [A,B,C,D,E,F];
-export function Tuple<A,B,C,D,E,F>(a: A, b?: B, c?: C, d?: D, e?: E, f?: F){
-	return [a,b,c,d,e,f];
+export function Tuple<A>		    (a: A) 										: [A]		 ;
+export function Tuple<A,B>		    (a: A, b: B) 								: [A,B]		 ;
+export function Tuple<A,B,C>	    (a: A, b: B, c: C)							: [A,B,C]	 ;
+export function Tuple<A,B,C,D>	    (a: A, b: B, c: C, d: D)					: [A,B,C,D]	 ;
+export function Tuple<A,B,C,D,E>    (a: A, b: B, c: C, d: D, e: E)				: [A,B,C,D,E];
+export function Tuple<A,B,C,D,E,F>  (a: A, b: B, c: C, d: D, e: E, f: F)		: [A,B,C,D,E,F];
+export function Tuple<A,B,C,D,E,F,G>(a: A, b: B, c: C, d: D, e: E, f: F, g: G)	: [A,B,C,D,E,F,G];
+export function Tuple<A,B,C,D,E,F,G>(a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G){
+	return ([a,b,c,d,e,f,g]);
 };
 
 export function CatTuple<A,B>			(l:[A],r:[B])			: [A,B];
@@ -179,7 +198,8 @@ export function Tuplify(x, defaults){return 	x.concat([undefined, undefined, und
 
 let lp = ['mapPromises','without','mapUntilUnified','mapUntil','split','getDuplicatesValues','getUniqueValues','fusion','getPairwise','flatten']
 for(let name of lp)
-    Object.defineProperty(Array.prototype, name, {enumerable: false,value: (<any>Array.prototype)[name]});
+	Object.defineProperty(Array.prototype, name, {enumerable: false,value: (<any>Array.prototype)[name]});
+Object.defineProperty(String.prototype, 'cutInHalf', {enumerable: false,value: (<any>Array.prototype)['cutInHalf']});
 
 export let transposeMatrix = <T>(M: T[][]) => (M[0]||[]).map((_,j) => M.map((_,i) => M[i][j]));
 

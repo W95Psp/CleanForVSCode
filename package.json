@@ -17,8 +17,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.sayHello",
-        "title": "Hello World"
+        "command": "extension.cpmMake",
+        "title": "CPM Make"
+      },
+      {
+        "command": "extension.cpmMakeExec",
+        "title": "CPM Make & execute"
       }
     ],
     "languages": [
@@ -29,7 +33,8 @@
           "clean"
         ],
         "extensions": [
-          "icl"
+          "icl",
+          "dcl"
         ],
         "configuration": "./language-configuration.json"
       }
