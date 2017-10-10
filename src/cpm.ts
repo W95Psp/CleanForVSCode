@@ -1,10 +1,15 @@
-import {exec, spawn} from 'child_process';
+import {execSync, spawn} from 'child_process';
 import {existsSync, readdir, readdirSync, lstatSync, readFile} from 'fs';
 import {parse, format, normalize} from 'path';
 import {Tuple, Let, ithrow} from './tools';
 import * as VC from 'vscode';
 
-let cleanHome = parse(normalize('C:/Users/wpsp/clean-bundle-complete'));
+let getCleanHomePath = () => 
+    (/^win/.test(process.platform) && existsSync('C:/Windows/System32/bash.exe') ? 
+                 execSync('bash -c "echo $CLEAN_HOME"').toString() : process.env.CLEAN_HOME) 
+            || Let('Error: CLEAN_HOME environment path is not set', e => (VC.window.showErrorMessage(e), ithrow(e)));       
+
+let cleanHome = parse(normalize(getCleanHomePath()));
 let cleanLib = normalize(format(cleanHome) + '/lib');
 
 let readdirPromise = (path: string) => new Promise<string[]>((a,r) => readdir(path, (err,res) => err ? r(err) : a(res)));
@@ -21,15 +26,6 @@ let searchRecursivelyForDCLs = async (path: string) : Promise<[string, string[]]
 
     return modules.concat((await dirs.mapPromises(searchRecursivelyForDCLs)).flatten());
 }
-// let libsPaths = [];
-// let fetchLibPaths = async () => {
-//     let result = (await [cleanLib, '.'].mapPromises(searchRecursivelyForDCLs)).flatten();
-//     let paths = new Set<string>();
-//     let f = (l:any[]) => '/'+new Array(l.length-1).fill('..').join('/');
-//     libsPaths = result.map(([path, module]) => normalize(normalize(path+f(module))+'/')).getUniqueValues();
-//     return 0;
-// }
-// fetchLibPaths();
 
 export let getProjectPath = (dir: string) : string | Error => 
     readdirSync(dir).some(o => o.slice(-4)=='.prj') ? dir :
