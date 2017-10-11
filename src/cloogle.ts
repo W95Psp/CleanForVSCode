@@ -1,17 +1,14 @@
-const getContent = function(url) {
-    return new Promise<string>((resolve, reject) => {
-      const lib = url.startsWith('https') ? require('https') : require('http');
-      const request = lib.get(url, (response) => {
-        if (response.statusCode < 200 || response.statusCode > 299) {
-           reject(new Error('Failed to load page, status code: ' + response.statusCode));
-         }
-        const body = [];
-        response.on('data', (chunk) => body.push(chunk));
-        response.on('end', () => resolve(body.join('')));
-      });
-      request.on('error', (err) => reject(err))
-      })
-  };
+import * as https from 'https';
+import * as http from 'http';
+import {Let} from './tools';
+import * as Request from 'request';
+
+const getContent = function(url: string, ua: string) {
+    return new Promise<string>((resolve, reject) => 
+        Request(url, {
+            headers: {'User-Agent': ua}
+        }, (error, res, body) => error ? reject(error) : resolve(body.toString()))
+    )};
 
 type cloogleResults={return: number, data: cloogleResult[], msg: string, more_available: number};
 type cloogleResult =    ['FunctionResult', [cloogleResult_GeneralData, cloogleResult_Function]]    |
@@ -50,6 +47,7 @@ export async function askCloogle (name) {
     let result: cloogleResults;
     try{
         let content = await getContent('http://cloogle.org/api.php?str='+encodeURI(name));
+        let content = await getContent('http://cloogle.org/api.php?str='+encodeURI(name), 'clean-vscode');
         result = JSON.parse(content) as cloogleResults;
     }catch{
         result = {return: -1} as cloogleResults;
