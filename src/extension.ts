@@ -34,7 +34,11 @@ export function activate(context: ExtensionContext) {
             let editor = window.activeTextEditor;    
             let regex = /([-~@#$%^?!+*<>\/|&=:.]+|(\w*`|\w+))/;
             let rangeVarName = editor.document.getWordRangeAtPosition(position, regex);
-            let varName = editor.document.getText(rangeVarName);
+
+            if(!rangeVarName) // undefined if regex not match, 
+                return;
+            let varName = editor.document.getText(rangeVarName); // if rangeVarName==undefined, then everything is selected
+
             if(varName in computedTypes)
                 return new Hover(computedTypes[varName]);
             else{
@@ -43,7 +47,6 @@ export function activate(context: ExtensionContext) {
                     return;
                 let [TypeData, [GeneralData, Specifics]] = result;
 
-                if(GeneralData.builtin)
                 if(GeneralData.builtin && TypeData != 'SyntaxResult')
                     return new Hover({value: ':: '+varName, language: 'clean'});
                 
@@ -52,7 +55,6 @@ export function activate(context: ExtensionContext) {
                 let head = new MarkdownString(
                     `[[+]](https://cloogle.org/#${encodeURI(varName)}) ${GeneralData.library}: ${GeneralData.modul} ([dcl:${GeneralData.dcl_line}](${link(GeneralData.dcl_line)}):[icl:${GeneralData.icl_line}](${link(GeneralData.icl_line, true)}))`
                 );
-                return new Hover([head, {value: getInterestingStringFrom(result), language: 'clean'}]);
                 let listResults:string[] = Let(getInterestingStringFrom(result), t => t instanceof Array ? t : [t]);
                 return new Hover([head, ...listResults.map(value => ({value, language: 'clean'}))]);
             }
