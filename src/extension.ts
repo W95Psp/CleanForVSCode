@@ -44,6 +44,7 @@ export function activate(context: ExtensionContext) {
                 let [TypeData, [GeneralData, Specifics]] = result;
 
                 if(GeneralData.builtin)
+                if(GeneralData.builtin && TypeData != 'SyntaxResult')
                     return new Hover({value: ':: '+varName, language: 'clean'});
                 
                 let link = (line: number, icl=false) => 
@@ -52,6 +53,8 @@ export function activate(context: ExtensionContext) {
                     `[[+]](https://cloogle.org/#${encodeURI(varName)}) ${GeneralData.library}: ${GeneralData.modul} ([dcl:${GeneralData.dcl_line}](${link(GeneralData.dcl_line)}):[icl:${GeneralData.icl_line}](${link(GeneralData.icl_line, true)}))`
                 );
                 return new Hover([head, {value: getInterestingStringFrom(result), language: 'clean'}]);
+                let listResults:string[] = Let(getInterestingStringFrom(result), t => t instanceof Array ? t : [t]);
+                return new Hover([head, ...listResults.map(value => ({value, language: 'clean'}))]);
             }
         }
     });

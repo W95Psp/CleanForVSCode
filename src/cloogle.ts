@@ -14,6 +14,7 @@ type cloogleResults={return: number, data: cloogleResult[], msg: string, more_av
 type cloogleResult =    ['FunctionResult', [cloogleResult_GeneralData, cloogleResult_Function]]    |
                         ['TypeResult', [cloogleResult_GeneralData, cloogleResult_Type]]            |
                         ['ClassResult', [cloogleResult_GeneralData, cloogleResult_Class]]          |
+                        ['SyntaxResult', [cloogleResult_GeneralData, cloogleResult_Syntax]]          |
                         ['ModuleResult', [cloogleResult_GeneralData, cloogleResult_Module]];
 
 interface cloogleResult_GeneralData {
@@ -42,6 +43,11 @@ interface cloogleResult_Class {
 interface cloogleResult_Module {
     module_is_core: boolean;
 }
+interface cloogleResult_Syntax {
+    syntax_title: boolean;
+    syntax_code: string[];
+    syntax_examples: {example: string, cleanjs_examples: string}[];
+}
 
 export async function askCloogle (name) {
     let result: cloogleResults;
@@ -64,7 +70,13 @@ export let askCloogleExact = async (name) => {
     return result;
 }
 export let getInterestingStringFrom = ([typeData, [general, specs]]: cloogleResult): string => 
+export let getInterestingStringFrom = ([typeData, [general, specs]]: cloogleResult): string|string[] => 
     typeData == 'FunctionResult' ?  (<cloogleResult_Function>   specs).func :
     typeData == 'TypeResult' ?      (<cloogleResult_Type>       specs).type :
+    typeData == 'SyntaxResult' ? Let(<cloogleResult_Syntax>     specs, s => 
+                                            [/*s.syntax_title,*/s.syntax_code.join(', '), ...Let(
+                                                s.syntax_examples.map(o => o.example),
+                                                l => l.length ? ['> Examples: ', ...l] : []
+                                            )]):
     typeData == 'ClassResult' ?     (<cloogleResult_Class>      specs).class_funs.join('\n') :
                                     ''/*(<cloogleResult_Module>     specs)*/;
