@@ -4,8 +4,9 @@ import {parse, format, normalize} from 'path';
 import {Tuple, Let, ithrow} from './tools';
 import * as VC from 'vscode';
 
+export let useBOW = VC.workspace.getConfiguration("cleanlang").useBashOnWindowsIfPossible && /^win/.test(process.platform) && existsSync('C:/Windows/System32/bash.exe');
 let getCleanHomePath = () => 
-    (/^win/.test(process.platform) && existsSync('C:/Windows/System32/bash.exe') ? 
+    (useBOW ? 
                  execSync('bash -c "echo $CLEAN_HOME"').toString() : process.env.CLEAN_HOME) 
             || Let('Error: CLEAN_HOME environment path is not set', e => (VC.window.showErrorMessage(e), ithrow(e)));       
 
@@ -31,20 +32,8 @@ export let getProjectPath = (dir: string) : string | Error =>
     readdirSync(dir).some(o => o.slice(-4)=='.prj') ? dir :
         parse(dir).root==dir ? new Error('No project file found') : getProjectPath(normalize(dir+'/..'));
 
-let getCommand = () => {
-    let isWin = /^win/.test(process.platform);
-    if(isWin){
-        if(existsSync('C:/Windows/System32/bash.exe')){
-            // return (name) => 'bash.exe -c "source ~/.profile; clm -lat '+name+'"';
-            return (name) => ['bash.exe', '-c', 'source ~/.profile; cpm make']
-        }else{
-            return (name) => ['clm', 'make'];
-            // return (name) => 'clm -lat '+name+'';            
-        }
-    }else{
-        return (name) => ['clm', 'make'];
-    }
-};
+let getCommand = () => useBOW ? _ => ['bash.exe', '-c', 'source ~/.profile; cpm make'] : (_) => ['clm', 'make'];
+
 let cmd: ((name: string) => string[]) = getCommand();
 
 let treatResult = (s: string) => (console.log(s), /^No project file found/.test(s) ? new Error('CPM: '+s) : s);

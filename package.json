@@ -15,6 +15,17 @@
   ],
   "main": "./out/src/extension",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "CleanLang configuration",
+      "properties": {
+          "cleanlang.useBashOnWindowsIfPossible": {
+              "type": "boolean",
+              "default": true,
+              "description": "Use built in 'Bash On Windows' to run CPM and clean programs"
+          }
+      }
+    },
     "commands": [
       {
         "command": "extension.cpmMake",
