@@ -69,8 +69,13 @@ export function activate(context: ExtensionContext) {
         process.chdir(path);
         let out = window.createOutputChannel("CPM");
         lastOut = out;
-        out.show();  
-        let cpmResult = await cpm('essai', l => out.appendLine(l));
+        out.show();
+        let cpmResult = await cpm('essai', l => {
+            out.appendLine(l);
+            let t = l.match(/^(\w*`?|[-~@#$%^?!+*<>\/|&=:.]+)\s*::\s*(.*)[\s\n]*$/);
+            if(t)
+                computedTypes[t[1]] = t[2];
+        });
         
         if(cpmResult instanceof Error){
             window.showErrorMessage(cpmResult.message);
