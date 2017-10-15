@@ -110,29 +110,14 @@ export function activate(context: ExtensionContext) {
 
         if(result === false)
             return;
-        
-        // let s = new ShellExecution('bash.exe -c "'+result.executable+'"');
-        // window.createTerminal('HEY', 'bash.exe');
-        let out = result.out || window.createOutputChannel("Clean program");
 
-        out.appendLine("Execute program "+result.executable+"...");
-        out.show();
-        let p = spawn('bash.exe', ['-c', './'+result.executable]);
-        let left = '';
-        p.stdout.on("data", (chunk) => {
-            let s = chunk.toString();
-            let i = s.lastIndexOf('\n');
-            if(i > -1){
-                out.appendLine(left + s.substr(0, i))
-                left = s.substr(i + 1);
-            }else
-                left += s;
-        });
-        p.stdout.on("error", (err) => out.appendLine('ERROR: '+err.toString()));
-        p.stdout.on("close", () => [left, ' ', 'Program done'].map(x => x && out.appendLine(x)))
+        let t = window.createTerminal("Clean program", useBOW ? "C:/Windows/System32/bash.exe" : undefined)
+        t.show();
+        t.sendText('./'+result.executable);
     });
 
     context.subscriptions.push(disposableCpmMake);
     context.subscriptions.push(disposableCpmMakeExec);
 }
 
+export function deactivate() {}
