@@ -1,6 +1,4 @@
 'use strict';
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import {
     TextDocument, Position, CancellationToken, ExtensionContext,CompletionItemProvider,CompletionItem,Hover,Range,
     languages,window,commands, MarkdownString, DiagnosticCollection, Diagnostic, DiagnosticSeverity,
@@ -13,22 +11,11 @@ import { cpm, getProjectPath } from './cpm';
 import { spawn } from 'child_process';
 
 
-class hey implements CompletionItemProvider {
-    public async provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken): Promise<CompletionItem[]> {
-        return [new CompletionItem('hey')];
-    }
-}
-
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
     let computedTypes = {};
     
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "clean" is now active!');
+    console.log('CleanLang is active.');
 
-    let inv = (s: string) => s.split('').reverse().join(''); 
     languages.registerHoverProvider('clean', {
         async provideHover(document, position, token) {
             let editor = window.activeTextEditor;    
@@ -66,8 +53,6 @@ export function activate(context: ExtensionContext) {
     let newDiagnosticCollection = () => languages.createDiagnosticCollection('clean');
     let diagnostics = newDiagnosticCollection();
     
-    languages.registerCompletionItemProvider('clean', new hey(), 'h');
-    
     let lastOut;
     let cpmMake = async () => {
         let editor = window.activeTextEditor;
@@ -91,13 +76,7 @@ export function activate(context: ExtensionContext) {
             window.showErrorMessage(cpmResult.message);
             return false;
         }
-        // let outs = cpmResult.split(/\n(?=[^\s])/).filter(o => o);
         
-        // let outs = cpmResult.match(new RegExp(regexpParseErrors.toString(), 'mg')) || [];
-        // let types = outs.map(m => m.match(/^(\w*`?|[-~@#$%^?!+*<>\/|&=:.]+)\s*::\s*(.*)[\s\n]*$/)).filter(o => o);
-        // types.forEach(([,n,t]) => computedTypes[n] = t);
-        
-
         let errors = MakeList(() => Let(regexpParseErrors.exec(<string>cpmResult), value => ({ value, done: !value })))
                 .filter(o => o)
                 .map(([,errorName,fName,l,c,oth,msg,more,]) => Tuple(errorName,fName,l,c,oth,msg,(more||'').split('\n').map(o => o.trim())));
@@ -152,6 +131,3 @@ export function activate(context: ExtensionContext) {
     context.subscriptions.push(disposableCpmMakeExec);
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {
-}
