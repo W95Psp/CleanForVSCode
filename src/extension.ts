@@ -7,7 +7,7 @@ import {
 import {normalize, format, parse} from 'path'; 
 import { askCloogle, askCloogleExact, getInterestingStringFrom } from './cloogle';
 import { Let, Tuple, MakeList } from './tools';
-import { cpm, getProjectPath } from './cpm';
+import { cpm, getProjectPath, useBOW } from './cpm';
 import { spawn } from 'child_process';
 
 
