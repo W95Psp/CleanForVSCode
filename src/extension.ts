@@ -38,7 +38,7 @@ export function activate(context: ExtensionContext) {
                     return new Hover({value: ':: '+varName, language: 'clean'});
                 
                 let link = (line: number, icl=false) => 
-                    `https://cloogle.org/src#${GeneralData.library}.${GeneralData.modul}${icl ? ';icl' : ''};line=${line}`;
+                    `https://cloogle.org/src#${GeneralData.library}/${GeneralData.modul.replace(/\./g,'/')}${icl ? ';icl' : ''};line=${line}`;
                 let head = new MarkdownString(
                     `[[+]](https://cloogle.org/#${encodeURI(varName)}) ${GeneralData.library}: ${GeneralData.modul} ([dcl:${GeneralData.dcl_line}](${link(GeneralData.dcl_line)}):[icl:${GeneralData.icl_line}](${link(GeneralData.icl_line, true)}))`
                 );
