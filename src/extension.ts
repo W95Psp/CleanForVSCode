@@ -35,21 +35,22 @@ export function activate(context: ExtensionContext) {
             if(precomputed && config_preferExportedTypes)
                 return precomputed;
             else{
-                let result = await askCloogleExact(varName);
-                if(!result)
-                    return;
-                let [TypeData, [GeneralData, Specifics]] = result;
+                let results = (await askCloogle(varName)).map(result => {
+                    let [TypeData, [GeneralData, Specifics]] = result;
 
-                if(GeneralData.builtin && TypeData != 'SyntaxResult')
-                    return new Hover({value: ':: '+varName, language: 'clean'});
-                
-                let link = (line: number, icl=false) => 
-                    `https://cloogle.org/src#${GeneralData.library}/${GeneralData.modul.replace(/\./g,'/')}${icl ? ';icl' : ''};line=${line}`;
-                let head = new MarkdownString(
-                    `[[+]](https://cloogle.org/#${encodeURI(varName)}) ${GeneralData.library}: ${GeneralData.modul} ([dcl:${GeneralData.dcl_line}](${link(GeneralData.dcl_line)}):[icl:${GeneralData.icl_line}](${link(GeneralData.icl_line, true)}))`
-                );
-                let listResults:string[] = Let(getInterestingStringFrom(result), t => t instanceof Array ? t : [t]);
-                return new Hover([head, ...listResults.map(value => ({value, language: 'clean'}))]);
+                    if(GeneralData.builtin && TypeData != 'SyntaxResult')
+                        return [{value: ':: '+varName, language: 'clean'}];
+                    
+                    let link = (line: number, icl=false) => 
+                        `https://cloogle.org/src#${GeneralData.library}/${GeneralData.modul.replace(/\./g,'/')}${icl ? ';icl' : ''};line=${line}`;
+                    let head = new MarkdownString(
+                        `[[+]](https://cloogle.org/#${encodeURI(varName)}) ${GeneralData.library}: ${GeneralData.modul} ([dcl:${GeneralData.dcl_line}](${link(GeneralData.dcl_line)}):[icl:${GeneralData.icl_line}](${link(GeneralData.icl_line, true)}))`
+                    );
+                    let listResults:string[] = Let(getInterestingStringFrom(result), t => t instanceof Array ? t : [t]);
+                    [head, ...listResults.map(value => ({value, language: 'clean'}))];
+                }).flatten();
+                if(results.length < 1)
+                    return new Hover(results);
             }
             return precomputed;
         }
