@@ -4,7 +4,9 @@ import {parse, format, normalize} from 'path';
 import {Tuple, Let, ithrow} from './tools';
 import * as VC from 'vscode';
 
-export let useBOW = VC.workspace.getConfiguration("cleanlang").useBashOnWindowsIfPossible && /^win/.test(process.platform) && existsSync('C:/Windows/System32/bash.exe');
+export let useBOW = VC.workspace.getConfiguration("cleanlang").useBashOnWindowsIfPossible
+                    && /^win/.test(process.platform)
+                    && existsSync('C:/Windows/System32/bash.exe');
 let getCleanHomePath = () => 
     (useBOW ? 
                  execSync('bash -c "echo $CLEAN_HOME"').toString() : process.env.CLEAN_HOME) 
@@ -32,16 +34,13 @@ export let getProjectPath = (dir: string) : string | Error =>
     readdirSync(dir).some(o => o.slice(-4)=='.prj') ? dir :
         parse(dir).root==dir ? new Error('No project file found') : getProjectPath(normalize(dir+'/..'));
 
-let getCommand = () => useBOW ? _ => ['bash.exe', '-c', 'source ~/.profile; cpm make'] : (_) => ['clm', 'make'];
-
-let cmd: ((name: string) => string[]) = getCommand();
+let command = useBOW ? ['bash.exe', '-c', 'source ~/.profile; cpm make'] : ['cpm', 'make'];
 
 let treatResult = (s: string) => (console.log(s), /^No project file found/.test(s) ? new Error('CPM: '+s) : s);
 
 export let cpm = async (name: string, newLine?: (line: string) => any) => 
     new Promise<string | Error>((a,r) => {
-        let c = cmd(name);
-        let p = spawn(c[0], c.slice(1));
+        let p = spawn(command[0], command.slice(1));
         let left = '';
         let lines = [];
         let addl = (l: string) => (lines.push(l), newLine && newLine(l), l);
