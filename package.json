@@ -19,11 +19,21 @@
       "type": "object",
       "title": "CleanLang configuration",
       "properties": {
-          "cleanlang.useBashOnWindowsIfPossible": {
-              "type": "boolean",
-              "default": true,
-              "description": "Use built in 'Bash On Windows' to run CPM and clean programs"
-          }
+        "cleanlang.useBashOnWindowsIfPossible": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use built in 'Bash On Windows' to run CPM and clean programs"
+        },
+        "cleanlang.useExportedTypes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Analyse CPM output to extract type informations, and use these in tooltips (Warning: not tested!)"
+        },
+        "cleanlang.preferExportedTypes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Give priority to CPM output (if a type was infered for some identifier, Cloogle won't be requested)"
+        }
       }
     },
     "commands": [

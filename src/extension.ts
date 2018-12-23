@@ -2,7 +2,7 @@
 import {
     TextDocument, Position, CancellationToken, ExtensionContext,CompletionItemProvider,CompletionItem,Hover,Range,
     languages,window,commands, MarkdownString, DiagnosticCollection, Diagnostic, DiagnosticSeverity,
-    ShellExecution, Uri
+    ShellExecution, Uri, workspace
 } from 'vscode';
 import {normalize, format, parse} from 'path'; 
 import { askCloogle, askCloogleExact, getInterestingStringFrom } from './cloogle';
@@ -10,6 +10,8 @@ import { Let, Tuple, MakeList } from './tools';
 import { cpm, getProjectPath, useBOW } from './cpm';
 import { spawn } from 'child_process';
 
+let config_useExportedTypes     = workspace.getConfiguration("cleanlang").useExportedTypes      === true;
+let config_preferExportedTypes  = workspace.getConfiguration("cleanlang").preferExportedTypes   === true;
 
 export function activate(context: ExtensionContext) {
     let computedTypes = {};
@@ -26,8 +28,12 @@ export function activate(context: ExtensionContext) {
                 return;
             let varName = editor.document.getText(rangeVarName); // if rangeVarName==undefined, then everything is selected
 
+            let precomputed;
             if(varName in computedTypes)
-                return new Hover(computedTypes[varName]);
+                precomputed = new Hover(computedTypes[varName]);
+            
+            if(precomputed && config_preferExportedTypes)
+                return precomputed;
             else{
                 let result = await askCloogleExact(varName);
                 if(!result)
@@ -45,6 +51,7 @@ export function activate(context: ExtensionContext) {
                 let listResults:string[] = Let(getInterestingStringFrom(result), t => t instanceof Array ? t : [t]);
                 return new Hover([head, ...listResults.map(value => ({value, language: 'clean'}))]);
             }
+            return precomputed;
         }
     });
 
@@ -72,9 +79,11 @@ export function activate(context: ExtensionContext) {
         out.show();
         let cpmResult = await cpm('essai', l => {
             out.appendLine(l);
-            let t = l.match(/^(\w*`?|[-~@#$%^?!+*<>\/|&=:.]+)\s*::\s*(.*)[\s\n]*$/);
-            if(t)
-                computedTypes[t[1]] = t[2];
+            if(config_useExportedTypes){
+                let t = l.match(/^(\w*`?|[-~@#$%^?!+*<>\/|&=:.]+)\s*::\s*(.*)[\s\n]*$/);
+                if(t)
+                    computedTypes[t[1]] = t[2];
+            }
         });
         
         if(cpmResult instanceof Error){
@@ -85,7 +94,6 @@ export function activate(context: ExtensionContext) {
         let errors = MakeList(() => Let(regexpParseErrors.exec(<string>cpmResult), value => ({ value, done: !value })))
                 .filter(o => o)
                 .map(([,errorName,fName,l,c,oth,msg,more,]) => Tuple(errorName,fName,l,c,oth,msg,(more||'').split('\n').map(o => o.trim())));
-        
         
         let derrors = errors.map(([n,fName,l,c,,msg,more]) => Tuple(
             Uri.file(path+'/'+fName.replace(/\.(?=.{4})/g, '/')),
