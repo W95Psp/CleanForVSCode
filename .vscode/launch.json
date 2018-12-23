@@ -7,7 +7,7 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": ["--extensionDevelopmentPath=C:\\Users\\wpsp\\Desktop\\cleanExt\\cleanlang\\" ],
+            "args": ["--extensionDevelopmentPath=${workspaceFolder}/." ],
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [ "${workspaceRoot}/out/src/**/*.js" ],
