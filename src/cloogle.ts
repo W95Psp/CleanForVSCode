@@ -52,7 +52,7 @@ interface cloogleResult_Syntax {
 export async function askCloogle (name) {
     let result: cloogleResults;
     try{
-        let content = await getContent('http://cloogle.org/api.php?str='+encodeURI(name), 'clean-vscode');
+        let content = await getContent('http://cloogle.org/api.php?str='+encodeURI('exact '+name), 'clean-vscode');
         result = JSON.parse(content) as cloogleResults;
     }catch(e){
         console.log('Got error', e);
@@ -64,9 +64,8 @@ let cache = new Map<string,cloogleResult>();
 export let askCloogleExact = async (name) => {
     if(cache.has(name))
         return cache.get(name);
-    let first = (await askCloogle(name))[0];
-    let result = (!first || first[1][0].distance!=-100) ? undefined : first;
-    cache.set(name, result);            
+    let result = (await askCloogle(name))[0];
+    cache.set(name, result);
     return result;
 }
 export let getInterestingStringFrom = ([typeData, [general, specs]]: cloogleResult): string|string[] => 
