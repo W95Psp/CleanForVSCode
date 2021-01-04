@@ -122,7 +122,7 @@
 		}]},
 		"cleanTypeDef": {"patterns": [{
 			"name": "keyword.operator.clean",
-			"match": "^\\s*::\\s*\\u\\w*`?`"
+			"match": "^::\\s*[.*]\\?[A-Z_][a-zA-Z0-9_`]"
 		}]},
 		"cleanLambda": {"patterns": [{
 			"match": "(\\\\)\\s*(([a-zA-Z_]\\w*`?\\s*)+)(\\.|-\\>|=)",
