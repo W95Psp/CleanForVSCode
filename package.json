@@ -1,91 +1,95 @@
 {
-  "name": "cleanlang",
-  "displayName": "CleanLang",
-  "description": "",
-  "version": "0.0.1",
-  "publisher": "l",
-  "engines": {
-    "vscode": "^1.16.0"
-  },
-  "categories": [
-    "Languages"
-  ],
-  "activationEvents": [
-    "onLanguage:clean"
-  ],
-  "main": "./out/src/extension",
-  "contributes": {
-    "configuration": {
-      "type": "object",
-      "title": "CleanLang configuration",
-      "properties": {
-        "cleanlang.useBashOnWindowsIfPossible": {
-          "type": "boolean",
-          "default": false,
-          "description": "Use built in 'Bash On Windows' to run CPM and clean programs"
-        },
-        "cleanlang.useExportedTypes": {
-          "type": "boolean",
-          "default": false,
-          "description": "Analyse CPM output to extract type informations, and use these in tooltips (Warning: not tested!)"
-        },
-        "cleanlang.preferExportedTypes": {
-          "type": "boolean",
-          "default": false,
-          "description": "Give priority to CPM output (if a type was infered for some identifier, Cloogle won't be requested)"
-        }
-      }
+    "name": "cleanlang",
+    "displayName": "CleanLang",
+    "description": "",
+    "version": "0.0.2",
+    "publisher": "lucas-franceschino",
+    "engines": {
+	"vscode": "^1.16.0"
     },
-    "commands": [
-      {
-        "command": "extension.cpmMake",
-        "title": "CPM Make"
-      },
-      {
-        "command": "extension.cpmMakeExec",
-        "title": "CPM Make & execute"
-      }
+    "categories": [
+	"Languages"
     ],
-    "languages": [
-      {
-        "id": "clean",
-        "aliases": [
-          "Clean",
-          "clean"
-        ],
-        "extensions": [
-          "icl",
-          "dcl"
-        ],
-        "configuration": "./language-configuration.json"
-      }
+    "activationEvents": [
+	"onLanguage:clean"
     ],
-    "grammars": [
-      {
-        "language": "clean",
-        "scopeName": "source.clean",
-        "path": "./syntaxes/clean.tmLanguage.json"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test"
-  },
-  "devDependencies": {
-    "typescript": "^2.5.2",
-    "vscode": "^1.1.5",
-    "mocha": "^3.5.0",
-    "@types/node": "^7.0.43",
-    "@types/mocha": "^2.2.42"
-  },
-  "dependencies": {
-    "@types/request-promise-native": "^1.0.7",
-    "request": "^2.83.0",
-    "request-promise-native": "^1.0.5",
-    "typescript-memoize": "^1.0.0-alpha.3"
-  }
+    "repository": {
+	"type": "git",
+	"url": "git@github.com:W95Psp/CleanForVSCode.git"
+    },
+    "main": "./out/src/extension",
+    "contributes": {
+	"configuration": {
+	    "type": "object",
+	    "title": "CleanLang configuration",
+	    "properties": {
+		"cleanlang.useBashOnWindowsIfPossible": {
+		    "type": "boolean",
+		    "default": false,
+		    "description": "Use built in 'Bash On Windows' to run CPM and clean programs"
+		},
+		"cleanlang.useExportedTypes": {
+		    "type": "boolean",
+		    "default": false,
+		    "description": "Analyse CPM output to extract type informations, and use these in tooltips (Warning: not tested!)"
+		},
+		"cleanlang.preferExportedTypes": {
+		    "type": "boolean",
+		    "default": false,
+		    "description": "Give priority to CPM output (if a type was infered for some identifier, Cloogle won't be requested)"
+		}
+	    }
+	},
+	"commands": [
+	    {
+		"command": "extension.cpmMake",
+		"title": "CPM Make"
+	    },
+	    {
+		"command": "extension.cpmMakeExec",
+		"title": "CPM Make & execute"
+	    }
+	],
+	"languages": [
+	    {
+		"id": "clean",
+		"aliases": [
+		    "Clean",
+		    "clean"
+		],
+		"extensions": [
+		    "icl",
+		    "dcl"
+		],
+		"configuration": "./language-configuration.json"
+	    }
+	],
+	"grammars": [
+	    {
+		"language": "clean",
+		"scopeName": "source.clean",
+		"path": "./syntaxes/clean.tmLanguage.json"
+	    }
+	]
+    },
+    "scripts": {
+	"vscode:prepublish": "npm run compile",
+	"compile": "tsc -p ./",
+	"watch": "tsc -watch -p ./",
+	"postinstall": "node ./node_modules/vscode/bin/install",
+	"test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+	"@types/mocha": "^2.2.42",
+	"@types/node": "^7.0.43",
+	"mocha": "^3.5.0",
+	"typescript": "^3.5.1",
+	"vscode": "^1.1.5"
+    },
+    "dependencies": {
+	"@types/request-promise-native": "^1.0.7",
+	"request": "^2.83.0",
+	"request-promise-native": "^1.0.5",
+	"typescript-memoize": "^1.0.0-alpha.3"
+    }
 }
