@@ -6,16 +6,16 @@
 	],
 	"repository": {
 		"everything":{"patterns": [
-			{"include": "#cleanComment"},	
-			
-			{"include": "#cleanRecordDef"},	
-	
+			{"include": "#cleanComment"},
+
+			{"include": "#cleanRecordDef"},
+
 			{"include": "#cleanConditional"},
 			{"include": "#cleanClass"},
 			{"include": "#cleanGeneric"},
 			{"include": "#cleanImport"},
 			{"include": "#cleanStatement"},
-			
+
 			{"include": "#cleanModule"},
 			{"include": "#cleanChar"},
 			{"include": "#cleanInteger"},
@@ -23,12 +23,12 @@
 			{"include": "#cleanBool"},
 			{"include": "#cleanFunction"},
 			{"include": "#cleanOperator"},
-			{"include": "#cleanInfix"},		
-			{"include": "#cleanLambda"},		
-			{"include": "#cleanTypeDef"},		
-			
+			{"include": "#cleanInfix"},
+			{"include": "#cleanLambda"},
+			{"include": "#cleanTypeDef"},
+
 			{"include": "#cleanString"},
-			{"include": "#cleanCharList"}	
+			{"include": "#cleanCharList"}
 		]},
 		"cleanModule": {"patterns": [
 			{
@@ -48,7 +48,7 @@
 				"name": "comment.block.clean",
 				"begin": "/\\*",
 				"end": "\\*/",
-				"patterns": [{"include": "#cleanComment"}]			
+				"patterns": [{"include": "#cleanComment"}]
 			},{
 				"name": "comment.line.double-dash.clean",
 				"match": "//.*$"
