@@ -48,6 +48,10 @@
 			{
 				"command": "extension.cpmMakeExec",
 				"title": "CPM Make & execute"
+			},
+			{
+				"command": "extension.clean.cloogle",
+				"title": "Search Cloogle"
 			}
 		],
 		"languages": [

@@ -2,6 +2,8 @@ import * as https from 'https';
 import * as http from 'http';
 import {Let} from './tools';
 import * as Request from 'request';
+import { QuickPickItem } from 'vscode';
+import { link } from 'fs';
 
 const getContent = function(url: string, ua: string) {
 	return new Promise<string>((resolve, reject) =>
@@ -17,7 +19,7 @@ type cloogleResults =
 	, more_available: number
 	};
 
-type cloogleResult
+export type cloogleResult
 	= ['FunctionResult', [cloogleResult_GeneralData, cloogleResult_Function]]
 	| ['TypeResult', [cloogleResult_GeneralData, cloogleResult_Type]]
 	| ['ClassResult', [cloogleResult_GeneralData, cloogleResult_Class]]
@@ -31,8 +33,7 @@ interface cloogleResult_GeneralData {
 	modul: string;
 	dcl_line: number;
 	icl_line: number;
-	distance: number;
-	builtin?: boolean;
+	documentation?: string;
 }
 
 interface cloogleResult_Function {
@@ -84,7 +85,7 @@ export let askCloogleExact = async (name) => {
 	return result;
 }
 
-export let getInterestingStringFrom = ([typeData, [general, specs]]: cloogleResult): string | string[] => {
+export let getInterestingStringFrom = ([typeData, [general, specs]]: cloogleResult): string => {
 	switch(typeData) {
 		case "FunctionResult":
 			return (<cloogleResult_Function> specs).func;
@@ -100,4 +101,20 @@ export let getInterestingStringFrom = ([typeData, [general, specs]]: cloogleResu
 		default:
 			return "";
 	}
+}
+
+export interface CloogleQuickPickItem extends QuickPickItem {
+	itemLocation: string
+}
+
+export let toQuickPickItem = (result : cloogleResult) : CloogleQuickPickItem => {
+	let [typeData, [generalData, specifics]] = result;
+	let label = getInterestingStringFrom(result);
+	let description = generalData.documentation;
+	let link = `https://cloogle.org/src#${generalData.library}/${generalData.modul.replace(/\./g,'/')};line=${generalData.dcl_line}`;
+	return {
+		label : label,
+		description: description,
+		itemLocation: link
+	};
 }

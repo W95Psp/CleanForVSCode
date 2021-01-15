@@ -1,67 +1,56 @@
 'use strict';
 import {
-	TextDocument, Position, CancellationToken, ExtensionContext,CompletionItemProvider,CompletionItem,Hover,Range,
+	TextDocument, Position, CancellationToken, ExtensionContext,CompletionItemProvider,CompletionItem,Range,
 	languages,window,commands, MarkdownString, DiagnosticCollection, Diagnostic, DiagnosticSeverity,
-	ShellExecution, Uri, workspace
+	ShellExecution, Uri, workspace, QuickPickItem, OutputChannel, env
 } from 'vscode';
 import { normalize, format, parse } from 'path';
-import { askCloogle, askCloogleExact, getInterestingStringFrom } from './cloogle';
+import { askCloogle, askCloogleExact, getInterestingStringFrom, toQuickPickItem } from './cloogle';
 import { Let, Tuple, MakeList } from './tools';
 import { cpm, getProjectPath, useBOW } from './cpm';
 import { spawn } from 'child_process';
 
 let config_useExportedTypes = workspace.getConfiguration("cleanlang").useExportedTypes === true;
-let config_preferExportedTypes  = workspace.getConfiguration("cleanlang").preferExportedTypes === true;
+let config_preferExportedTypes = workspace.getConfiguration("cleanlang").preferExportedTypes === true;
 
 export function activate(context: ExtensionContext) {
 	let computedTypes = {};
 
 	console.log('CleanLang is active.');
 
-	languages.registerHoverProvider('clean', {
-		async provideHover(document, position, token) {
-			let editor = window.activeTextEditor;
-			let regex = /([-~@#$%^?!+*<>\/|&=:.]+|(\w*`|\w+))/;
-			let rangeVarName = editor.document.getWordRangeAtPosition(position, regex);
-
-			if (!rangeVarName) // undefined if regex not match
-				return;
-			let varName = editor.document.getText(rangeVarName); // if rangeVarName==undefined, then everything is selected
-
-			let precomputed;
-			if(varName in computedTypes)
-				precomputed = new Hover(computedTypes[varName]);
-
-			if(precomputed && config_preferExportedTypes) {
-				return precomputed;
-			} else {
-				let results = (await askCloogle(varName)).map(result => {
-					let [TypeData, [GeneralData, Specifics]] = result;
-
-					if(GeneralData.builtin && TypeData != 'SyntaxResult')
-						return [{value: ':: '+varName, language: 'clean'}];
-
-					let link = (line: number, icl=false) =>
-						`https://cloogle.org/src#${GeneralData.library}/${GeneralData.modul.replace(/\./g,'/')}${icl ? ';icl' : ''};line=${line}`;
-						let head = new MarkdownString(
-							`[[+]](https://cloogle.org/#${encodeURI(varName)}) ${GeneralData.library}: ${GeneralData.modul} ([dcl:${GeneralData.dcl_line}](${link(GeneralData.dcl_line)}):[icl:${GeneralData.icl_line}](${link(GeneralData.icl_line, true)}))`
-						);
-						let listResults:string[] = Let(getInterestingStringFrom(result), t => t instanceof Array ? t : [t]);
-						[head, ...listResults.map(value => ({value, language: 'clean'}))];
-				}).flatten();
-				if(results.length < 1)
-					return new Hover(results);
-			}
-			return precomputed;
+	let disposable = commands.registerCommand('extension.clean.cloogle', async () : Promise<any> => {
+		let editor = window.activeTextEditor;
+		if (!editor) {
+			return;
 		}
+
+		let selection = editor.selection;
+		if (selection.start === selection.end) {
+			return;
+		}
+
+		let text = editor.document.getText(selection).trim();
+
+		let results = (await askCloogle(text)).map(result => toQuickPickItem(result));
+
+		if (results.length == 0) {
+			return;
+		}
+		window.showQuickPick(results).then((item) => {
+			if (item) {
+				env.openExternal(Uri.parse(item.itemLocation));
+			}
+		});
 	});
+
+	context.subscriptions.push(disposable);
 
 	let regexpParseErrors = /^\s*(Warning|Type error|Error|Overloading .rror|Uniqueness .rror|Parse .rror) \[([\w\.]+),(\d+)(?:;(\d+))?(?:,([^,]*))?]:(.*)((\n\s.*)*)/mg;
 
 	let newDiagnosticCollection = () => languages.createDiagnosticCollection('clean');
 	let diagnostics = newDiagnosticCollection();
 
-	let lastOut;
+	let lastOut: OutputChannel;
 	let cpmMake = async () => {
 		let editor = window.activeTextEditor;
 
@@ -112,10 +101,10 @@ export function activate(context: ExtensionContext) {
 		let executable = (cpmResult.match(/^Linking '(.*?)'$/m) || [])[1] || '';
 
 		return {executable, out};
-    };
+	};
 
-	let disposableCpmMake       = commands.registerCommand('extension.cpmMake', cpmMake);
-	let disposableCpmMakeExec   = commands.registerCommand('extension.cpmMakeExec', async () => {
+	let disposableCpmMake = commands.registerCommand('extension.cpmMake', cpmMake);
+	let disposableCpmMakeExec = commands.registerCommand('extension.cpmMakeExec', async () => {
 		let result = await cpmMake();
 
 		if(result === false)
