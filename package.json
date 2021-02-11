@@ -48,6 +48,19 @@
 			{
 				"command": "extension.cpmMakeExec",
 				"title": "CPM Make & execute"
+			},
+			{
+				"command": "extension.clean.cloogle",
+				"title": "Search Cloogle"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "extension.clean.cloogle",
+				"key": "shift+alt+c",
+				"mac": "shift+alt+c",
+				"win": "shift+alt+c",
+				"linux": "shift+alt+c"
 			}
 		],
 		"languages": [
