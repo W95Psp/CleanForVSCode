@@ -1,3 +1,5 @@
+**Unmaintained: you probably want to look at https://gitlab.com/top-software/clean-vs-code**
+
 # CleanLang - a Clean extention for VSCode
 Inspired by https://github.com/camilstaps/vim-clean
 
